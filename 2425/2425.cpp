@@ -1,124 +1,238 @@
-﻿#include <malloc.h>
-#include<iostream>
+﻿#include <iostream>
+#include <stack>
 using namespace std;
-#define TRUE 1
-#define FALSE 0
-#define OK 1
-typedef int Status;
-typedef double ElemType;
-//-----------------------------------
-//定义单向循环链表
-typedef struct LNode
-{
-	int number;
-	int data;
-	struct LNode* next;
-} LNode, * LinkList;
-//-----------------------------------
-LinkList EvaluList(int n);//对单向循环链表进行尾插入赋值
-int size(LinkList L);//求链表的节点个数
-Status ScanList(LinkList L);//遍历单向循环链表
-Status Joseph(LinkList& L, int m);//约瑟夫环的实现
-//-------------------------------------------------
-int main()
-{
-	int m, n;
-	cout << "请输入初始密码m(正整数)和人数" << endl;
-	cin >> m >> n;
-	cout << endl << "请输入" << n << "个人的密码" << endl << endl;
-	LinkList L = EvaluList(n);
-	cout << n << "个人的密码为" << endl;
-	ScanList(L);
-	cout << n << "个人的出列顺序为" << endl;
-	Joseph(L, m);
+#define none '#'        
+typedef char TelemType; // 节点数据域类型
+
+// 二叉链表存储 
+typedef struct Binode {
+	TelemType data;
+	struct Binode* left, * right;
+}Binode, * Bitree;
+// 按先序输入建立二叉树 
+int createBiTree(Bitree& T) {
+	TelemType ch;
+	cin>>ch;
+	if (ch == none) T = NULL;
+	else {
+		T = new Binode;
+		T->data = ch;
+		createBiTree(T->left);
+		createBiTree(T->right);
+	}
+	return 1;
 }
-//---------对单向循环链表进行尾插入赋值----------------
-LinkList EvaluList(int n)
-{
-	if (n == 0)
-		return NULL;
-	int key;
-	cout << "输入第1个人的密码： ";
-	cin >> key;
-	LinkList L = new LNode;
-	L->data = key;
-	L->number = 1;
-	L->next = L;
-	for (int i = 2; i <= n; i++)
-	{
-		LinkList p = new LNode;
-		int key;
-		cout << "输入第" << i << "个人的密码： ";
-		cin >> key;
-		p->data = key;
-		p->number = i;
-		p->next = L->next;
-		L->next = p;
-		L = L->next;
+// 按照先序遍历二叉树 
+int preOrder(Bitree T) {
+	if (T) {
+		cout << T->data;
+		preOrder(T->left);
+		preOrder(T->right);
+		return 1;
 	}
-	cout << endl;
-	L = L->next;
-	return L;
+	else return 0;
 }
-//---------------求链表的节点个数-------------------
-int size(LinkList L)
-{
-	if (L == NULL)
-		return 0;
-	int i = 1;
-	LinkList p = L->next;
-	while (p != L)
-	{
-		i++;
-		p = p->next;
+//中序遍历
+int inOrder(Bitree T) {
+	if (T) {
+		if (T->left) inOrder(T->left);
+		cout<<T->data;
+		if (T->right) inOrder(T->right);
+		return 1;
 	}
-	return i;
+	else return 0;
 }
-//---------------遍历单向循环链表--------------------
-Status ScanList(LinkList L)
-{
-	LinkList p = L;
-	if (p == NULL)
-	{
-		cout << "人数为空" << endl;
-		return FALSE;
-	}
-	cout << "第1个人的密码是： ";
-	cout << p->data << endl;
-	p = p->next;
-	while (p != L)
-	{
-		cout << "第" << p->number << "个人的密码是： ";
-		cout << p->data << endl;
-		p = p->next;
-	}
-	cout << endl;
-	return TRUE;
+//后序遍历
+int postOrder(Bitree T) {
+	if (T) {
+		if (T->left) postOrder(T->left);
+		if (T->right) postOrder(T->right);
+		cout<< T->data;
+		return 1;
+	}return 0;
 }
-//----------------约瑟夫环的实现-----------------------
-Status Joseph(LinkList& L, int m)
-{
-	if (L == NULL)
-	{
-		cout << "人数为空，出列结束" << endl;
-		return FALSE;
+//非递归中序遍历 
+int inOrderTraverse1(Bitree T) {
+	stack<Bitree> s;  //存放节点指针
+	s.push(T);
+	while (!s.empty()) {
+		while (s.top()) s.push(s.top()->left);  //向左走到尽头
+		s.pop(); //空指针退栈
+		if (!s.empty()) {
+			Bitree t = s.top();
+			s.pop(); // 根节点出栈 
+			cout<< t->data;
+			s.push(t->right);
+		}
 	}
-	LinkList p = L;
-	cout << "密码为: " << m << "  出列编号为: 0" << endl;
-	while (p->next != L)
-		p = p->next;
-	for (int n = size(L); n > 0; n--)
-	{
-		for (int i = 1; i <= m % n - 1; i++)
-			p = p->next;
-		m = p->next->data;
-		cout << "密码为: " << m << "   出列编号为: ";
-		cout << p->next->number << endl;
-		LinkList q = p->next;
-		p->next = q->next;
-		free(q);
+	return 1;
+}
+int inOrderTraverse2(Bitree T) {
+	stack<Bitree> s;
+	Bitree p = T; //当前遍历节点 
+	while (!s.empty() || p) {
+		if (p) {
+			s.push(p); //根节点进栈
+			p = p->left; //遍历左子树 
+		}
+		else {
+			p = s.top();
+			s.pop(); //返回上一根节点
+			cout<< p->data;
+			p = p->right; // 遍历右节点  
+		}
 	}
-	return OK;
+	return 1;
 }
 
+//非递归前序遍历
+int preOrderTraverse1(Bitree T) {
+	stack<Bitree> s;
+	s.push(T);
+	Bitree p;
+	while (!s.empty()) {
+		while (s.top()) {
+			p = s.top();
+			cout<< p->data; //先访问根
+			s.push(p->left);//向左走到尽头 
+		}
+		s.pop(); //空指针出栈 
+		if (!s.empty()) {
+			p = s.top(); //退回上一层的根节点
+			s.pop();
+			s.push(p->right);
+		}
+	}
+	return 1;
+}
 
+int preOrderTraverse2(Bitree T) {
+	stack<Bitree> s;
+	Bitree p = T; //当前访问节点
+	while (!s.empty() || p) {
+		if (p) {
+			cout<< p->data;
+			s.push(p);
+			p = p->left; //访问左节点
+		}
+		else {
+			p = s.top(); //返回上一根节点
+			s.pop();
+			p = p->right;
+		}
+	}
+	return 1;
+}
+// 非递归先序遍历，按照节点的访问顺序压栈 根-左-右
+void preOrderTraverse3(Bitree T) {
+	stack<Bitree> s;
+	while (T) {
+		cout<<T->data;//先访问根
+		//先把右子树压栈，
+		//把左子树访问之后再访问右子树 
+		if (T->right) s.push(T->right);
+		T = T->left; //类似递归访问左子树
+		if (T == NULL && !s.empty()) { //如果左子树为空，则访问右子树 
+			T = s.top();
+			s.pop();
+		}
+	}
+}
+//非递归后序遍历
+/*
+* 1.如果是叶子节点，则输出
+* 2.如果左子树访问完，且右子树为空，则输出
+* 3.如果左右子树访问完，则输出
+* 4.否则将右、左子树依次压栈
+* 用last表示最后一个访问过的节点
+*/
+int postOrderTraverse1(Bitree T) {
+	stack<Bitree> s;
+	Bitree p; //当前访问节点
+	Bitree last; //最后一个访问过的节点 
+	last = p = T;
+	s.push(T);
+	while (!s.empty()) {
+		p = s.top();
+		if ((p->left == NULL && p->right == NULL)
+			|| (p->right == NULL && last == p->left)
+			|| (last == p->right)) {
+			cout<< p->data;
+			s.pop();
+			last = p;
+		}
+		else {
+			if (p->right) s.push(p->right);
+			if (p->left) s.push(p->left);
+		}
+	}
+	return 1;
+}
+void postOrderTraverse2(Bitree T) {
+	stack<Bitree> s;
+	Bitree p = T;
+	s.push(p); s.push(p);
+	while (!s.empty()) {
+		p = s.top();  s.pop(); //取栈顶根节点
+		if (p == s.top() && !s.empty()) { //表示该节点的孩子结点还为访问 
+			if (p->right) {
+				s.push(p->right); s.push(p->right);
+			}
+			if (p->left) {
+				s.push(p->left); s.push(p->left);
+			}
+		}
+		else cout<< p->data; //第二次接触，表示孩子结点已经访问完
+	}
+}
+//设置标志位
+typedef struct flagNode {
+	int flag;  //是不是第一次出现再栈顶 
+	Binode* bnode;
+}flagNode;
+void postOrderTraverse3(Bitree T) {
+	stack<flagNode*> s;
+	Bitree p = T;
+	flagNode* temp;
+	while (p || !s.empty()) {
+		while (p) { //向左走到尽头 
+			flagNode* fnode = new flagNode;
+			fnode->bnode = p;
+			fnode->flag = 1;
+			s.push(fnode);
+			p = p->left;
+		}
+		if (!s.empty()) {
+			temp = s.top(); s.pop();
+			if (temp->flag) {//第一次
+				temp->flag = 0;
+				s.push(temp);
+				p = temp->bnode->right; //访问右子树 
+			}
+			else {
+				cout<<temp->bnode->data;
+				p = NULL; //退回上一层 
+			}
+		}
+	}
+}
+int main() {
+	cout<<"输入二叉链表："
+	Bitree T;
+	createBiTree(T);
+	cout << "先序遍历：";
+	preOrder(T);
+	cout << "\n后序遍历：";
+	postOrder(T);
+	cout << "\n中序遍历：";
+	inOrder(T);
+	cout << endl;
+	cout << "\n非递归先序遍历：";
+	preOrderTraverse1(T);
+	cout << "\n非递归后序遍历：";
+	postOrderTraverse1(T);
+	cout << "\n非递归中序遍历：";
+	inOrderTraverse1(T);
+
+	return 0;
+}
